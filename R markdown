@@ -1,0 +1,115 @@
+# The Scheibler House was designed by the famous architect 
+#, and it will be put up for sale after it has been renovated. 
+# This is the code predicting its price.
+
+---
+title: "Valuating_ScheiblerHouse"
+output: html_document
+date: "2024-03-27"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+```
+
+```{r}
+SaleData<- read.csv("saledata.csv")
+CharactData<- read.csv("charactdata.csv")
+```
+
+# (MAY FILTER DATA WHILE COLLECTING FROM WEBSITE or CLEAN ON EXCEL or by R)
+
+```{r}
+clean_CharactData <- CharactData %>%
+  select(-`X_id`, -`PROPERTYHOUSENUM`, -`PROPERTYFRACTION`, -`PROPERTYADDRESS`, 
+         -`PROPERTYCITY`, -`PROPERTYSTATE`, -`LEGAL1`, -`LEGAL2`, -`LEGAL3`, -`TAXCODE`, -`TAXDESC`, 
+         -`TAXSUBCODE`, -`TAXSUBCODE_DESC`, -`OWNERCODE`, -`OWNERDESC`, -`HOMESTEADFLAG`, -`FARMSTEADFLAG`, 
+         -`CLEANGREEN`, -`ABATEMENTFLAG`, -`RECORDDATE`, -`DEEDBOOK`, -`DEEDPAGE`, -`PREVSALEDATE2`, 
+         -`PREVSALEPRICE2`, -`CHANGENOTICEADDRESS1`, -`CHANGENOTICEADDRESS2`, -`CHANGENOTICEADDRESS3`, 
+         -`CHANGENOTICEADDRESS4`, -`STYLE`, -`ALT_ID`, -`PROPERTYUNIT`, -`COUNTYEXEMPTBLDG`,-`TAXYEAR`, -`ASOFDATE` )
+```
+
+```{r}
+clean_CharactData <- clean_CharactData %>%
+  select( -`PROPERTYZIP`, -`CLASS`, -`CLASSDESC`, -`USECODE`, -`SALECODE`, 
+         -`SALEDESC`, -`PREVSALEDATE`, -`PREVSALEPRICE`, -`COUNTYBUILDING`, 
+         -`COUNTYLAND`, -`LOCALBUILDING`, -`LOCALLAND`, -`FAIRMARKETBUILDING`, -`FAIRMARKETLAND`, 
+         -`EXTERIORFINISH`, -`ROOF`, -`ROOFDESC`, -`BASEMENT`, -`GRADE`, -`CONDITION`, -`CDU`, 
+         -`CDUDESC`, -`HEATINGCOOLING`, -`FIREPLACES`, -`BSMTGARAGE`, -`CARDNUMBER`, -`MUNICODE`, -`NEIGHCODE`)
+```
+
+# (After Cleaning, preparing Data) 
+# Step 1. Filtering data (Residence, Zipcode 15206, Valid Sale, LotArea!=0)
+# Step 2. Creating variables (Sale_year based on Sale_date, and Age_sale based on yearbuilt and Sale_date)
+# Step 3. Creating variables (Totalbaths = Fullbaths + Halfbaths)
+
+# Step 1
+```{r}
+# Residence
+clean_CharactData <- clean_CharactData %>%
+  filter(`CLASS` %in% c("R"))
+```
+```{r}
+# Zipcode 15206
+clean_CharactData <- clean_CharactData %>% 
+  filter(`PROPERTYZIP` %in% c("15206"))
+# Valid Sale
+clean_CharactData <- clean_CharactData %>%
+                      filter(`SALEDESC` == "VALID SALE")
+# Lot Area cannot be zero
+clean_CharactData <- clean_CharactData %>%
+                      filter(LOTAREA != 0)
+```
+
+# Step 2
+```{r}
+library(lubridate)
+# Convert SALEDATE to a Date object
+clean_CharactData$SALEDATE <- mdy(clean_CharactData$SALEDATE)
+# Extract the year from SALEDATE
+clean_CharactData$SALE_YEAR <- year(clean_CharactData$SALEDATE)
+# Calculate AGE_SALE
+clean_CharactData$AGE_SALE <- clean_CharactData$SALE_YEAR - clean_CharactData$YEARBLT
+```
+
+# Step 3
+```{r}
+# create a new variable "TOTALBATHS": FULLBATHS + HALFBATHS
+clean_CharactData$TOTALBATHS <- clean_CharactData$FULLBATHS + clean_CharactData$HALFBATHS
+```
+```{r}
+# remove the old variables
+clean_CharactData <- clean_CharactData %>%
+  select(-`FULLBATHS`, -`HALFBATHS`)
+```
+# Filter the dataset
+```{r}
+clean_CharactData <- clean_CharactData %>%
+  select(-`COUNTYTOTAL`, -`LOCALTOTAL`, -`MUNIDESC`, -`TOTALROOMS`, -`FAIRMARKETTOTAL` )
+```
+```{r}
+clean_CharactData <- clean_CharactData[clean_CharactData$SALEPRICE> 100000,]
+```
+
+ # This is preparing to adjust the year factor.
+```{r}
+clean_CharactData <- clean_CharactData %>%
+  mutate(SALEDATE_YEAR = factor(format(SALEDATE, "%Y")))
+```
+
+
+# This is the Linear Model (Approach 1)
+# 1. using log(SALEPRICE), since 
+```{r}
+# Assuming 'NEIGHDESC' is the grouping variable
+# Fit the linear model
+LinearMod <- lm(log(SALEPRICE) ~ CONDITIONDESC + BEDROOMS 
+                + FINISHEDLIVINGAREA + TOTALBATHS + AGE_SALE + I(AGE_SALE^2) 
+                + HEATINGCOOLINGDESC + NEIGHDESC + STYLEDESC + LOTAREA 
+                + SALEDATE_YEAR + STORIES , data = clean_CharactData)
+summary(LinearMod)
+```
