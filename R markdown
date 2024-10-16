@@ -102,14 +102,14 @@ clean_CharactData <- clean_CharactData %>%
 ```
 
 
-# This is the Linear Model (Approach 1)
-# 1. using log(SALEPRICE), since 
+# (Approach 1)
+# Step 1: Linear Model
 ```{r}
-# Assuming 'NEIGHDESC' is the grouping variable
-# Fit the linear model
 LinearMod <- lm(log(SALEPRICE) ~ CONDITIONDESC + BEDROOMS 
                 + FINISHEDLIVINGAREA + TOTALBATHS + AGE_SALE + I(AGE_SALE^2) 
                 + HEATINGCOOLINGDESC + NEIGHDESC + STYLEDESC + LOTAREA 
                 + SALEDATE_YEAR + STORIES , data = clean_CharactData)
 summary(LinearMod)
 ```
+
+
