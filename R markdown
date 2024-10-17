@@ -162,50 +162,44 @@ house936 <- house936 %>%
 # Updating the SALEDATE_YEAR variable to 2023 for house936 (for prediction, specifically in the year 2023)
 house936$SALEDATE_YEAR <- as.factor(2023)
 
-# Using LinearMod
+# Using LinearModel
 prediction_LinearMod <- predict(LinearMod, newdata = house936, interval = "confidence")
+
 # since it is log(SALEPRICE), therefore, taking the exponential of the predicted log-transformed sale price 
 exp(prediction_LinearMod)
 ```
 
-2016: around 1.3% to 2.1%
-2017: around 2.1% to 2.5%
-2018: around 1.9% to 2.4%
-2019: around 1.6% to 2.3%
-2020: around 1.2% to 1.4% (inflation rates were affected by the COVID-19 pandemic)
-2021: around 1.3% to 1.5% (inflation rates were affected by the aftermath of the pandemic)
-2022: around 1.7% to 2.2%
-2023: around 1.8% to 2.3%
 
-
-
-
-#################
+# Approach 2 (Preparing another dataset, named"another_clean_CharactData,")
 ```{r}
+# the properties below have the some similar characteristic as 936 Mellon St.
 #0025N00080022000	
 #0082F00195000000
 #0086M00051000000	
 #0443K00260000000
 #0025K00162031700
+
 # Define the parcel numbers of interest
 parcel_numbers <- c("0025N00080022000", "0086M00051000000", "0443K00260000000", "0025K00162031700","0084L00098000000", "0085H00008000000")
 
 # Filter clean_CharactData to include only the specified parcel numbers
 filtered_data_App2 <- subset(CharactData, PARID %in% parcel_numbers)
-
-# my four comparables from 
 ```
 
 ```{r}
 another_clean_CharactData <- CharactData %>%
-  select(-`X_id`, -`PROPERTYHOUSENUM`, -`PROPERTYFRACTION`, -`PROPERTYADDRESS`,  -`PROPERTYCITY`, -`PROPERTYSTATE`, -`LEGAL1`, -`LEGAL2`, -`LEGAL3`, -`TAXCODE`, -`TAXDESC`, -`TAXSUBCODE`, -`TAXSUBCODE_DESC`, -`OWNERCODE`, -`OWNERDESC`, -`HOMESTEADFLAG`, -`FARMSTEADFLAG`, -`CLEANGREEN`, -`ABATEMENTFLAG`, -`RECORDDATE`, -`DEEDBOOK`, -`DEEDPAGE`, -`PREVSALEDATE2`, -`PREVSALEPRICE2`, -`CHANGENOTICEADDRESS1`, -`CHANGENOTICEADDRESS2`, -`CHANGENOTICEADDRESS3`, -`CHANGENOTICEADDRESS4`, -`STYLE`, -`ALT_ID`, -`PROPERTYUNIT`, -`COUNTYEXEMPTBLDG`,-`TAXYEAR`, -`ASOFDATE` )
+  select(-`X_id`, -`PROPERTYHOUSENUM`, -`PROPERTYFRACTION`, -`PROPERTYADDRESS`,  
+-`PROPERTYCITY`, -`PROPERTYSTATE`, -`LEGAL1`, -`LEGAL2`, -`LEGAL3`, -`TAXCODE`, -`TAXDESC`, 
+-`TAXSUBCODE`, -`TAXSUBCODE_DESC`, -`OWNERCODE`, -`OWNERDESC`, -`HOMESTEADFLAG`, -`FARMSTEADFLAG`, 
+-`CLEANGREEN`, -`ABATEMENTFLAG`, -`RECORDDATE`, -`DEEDBOOK`, -`DEEDPAGE`, -`PREVSALEDATE2`, 
+-`PREVSALEPRICE2`, -`CHANGENOTICEADDRESS1`, -`CHANGENOTICEADDRESS2`, -`CHANGENOTICEADDRESS3`, 
+-`CHANGENOTICEADDRESS4`, -`STYLE`, -`ALT_ID`, -`PROPERTYUNIT`, -`COUNTYEXEMPTBLDG`,-`TAXYEAR`, -`ASOFDATE` )
 ```
 
 ```{r}
 another_clean_CharactData <- another_clean_CharactData %>%
   filter(`CLASS` %in% c("R"))
 ```
-
 
 ```{r}
 another_clean_CharactData <- another_clean_CharactData %>%
@@ -240,6 +234,7 @@ another_clean_CharactData$SALE_YEAR <- year(another_clean_CharactData$SALEDATE)
 ```
 
 ```{r}
+# Need different zip code, since, the regression needd
 another_clean_CharactData <- another_clean_CharactData %>% 
   filter(`PROPERTYZIP` %in% c("15222", "15217", "15139"))
 ```
