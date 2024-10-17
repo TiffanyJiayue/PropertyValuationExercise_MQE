@@ -112,4 +112,153 @@ LinearMod <- lm(log(SALEPRICE) ~ CONDITIONDESC + BEDROOMS
 summary(LinearMod)
 ```
 
+# Step 2: 'house936' is the dataset about Scheibler House (936 Mellon St)
+```{r}
+house936 <- subset(CharactData, PARID == "0082R00061000000")
+```
+
+```{r}
+house936 <- house936 %>%
+  select(`SALEPRICE`, `NEIGHDESC`, `LOTAREA`, 
+`STYLEDESC`, `STORIES`, `YEARBLT`, `CONDITIONDESC`, 
+`BEDROOMS`, `FINISHEDLIVINGAREA`,`FAIRMARKETTOTAL`, `HEATINGCOOLINGDESC`,
+`FULLBATHS`, `HALFBATHS`, `EXTFINISH_DESC`, `BASEMENTDESC`, `SALEDATE`, `GRADEDESC`, `SCHOOLCODE`)
+```
+
+```{r}
+house936$HALFBATHS <- ifelse(is.na(house936$HALFBATHS), 0, house936$HALFBATHS)
+```
+
+```{r}
+house936$TOTALBATHS <- house936$FULLBATHS + house936$HALFBATHS
+```
+
+```{r}
+house936 <- house936 %>%
+  select(-`FULLBATHS`, -`HALFBATHS`)
+```
+
+```{r}
+library(lubridate)
+# "SALEDATE" represents the sale date in the format "MM-DD-YYYY"
+# "YEARBLT" represents the year the property was built as a four-digit year (e.g., 1900)
+
+# Convert SALEDATE to a Date object
+house936$SALEDATE <- mdy(house936$SALEDATE)
+
+# Extract the year from SALEDATE
+house936$SALE_YEAR <- year(house936$SALEDATE)
+
+# Calculate AGE_SALE
+house936$AGE_SALE <- house936$SALE_YEAR - house936$YEARBLT
+```
+
+```{r}
+house936 <- house936 %>%
+  mutate(SALEDATE_YEAR = factor(format(SALEDATE, "%Y")))
+```
+
+```{r}
+# Updating the SALEDATE_YEAR variable to 2023 for house936 (for prediction, specifically in the year 2023)
+house936$SALEDATE_YEAR <- as.factor(2023)
+
+# Using LinearMod
+prediction_LinearMod <- predict(LinearMod, newdata = house936, interval = "confidence")
+# since it is log(SALEPRICE), therefore, taking the exponential of the predicted log-transformed sale price 
+exp(prediction_LinearMod)
+```
+
+2016: around 1.3% to 2.1%
+2017: around 2.1% to 2.5%
+2018: around 1.9% to 2.4%
+2019: around 1.6% to 2.3%
+2020: around 1.2% to 1.4% (inflation rates were affected by the COVID-19 pandemic)
+2021: around 1.3% to 1.5% (inflation rates were affected by the aftermath of the pandemic)
+2022: around 1.7% to 2.2%
+2023: around 1.8% to 2.3%
+
+
+
+
+#################
+```{r}
+#0025N00080022000	
+#0082F00195000000
+#0086M00051000000	
+#0443K00260000000
+#0025K00162031700
+# Define the parcel numbers of interest
+parcel_numbers <- c("0025N00080022000", "0086M00051000000", "0443K00260000000", "0025K00162031700","0084L00098000000", "0085H00008000000")
+
+# Filter clean_CharactData to include only the specified parcel numbers
+filtered_data_App2 <- subset(CharactData, PARID %in% parcel_numbers)
+
+# my four comparables from 
+```
+
+```{r}
+another_clean_CharactData <- CharactData %>%
+  select(-`X_id`, -`PROPERTYHOUSENUM`, -`PROPERTYFRACTION`, -`PROPERTYADDRESS`,  -`PROPERTYCITY`, -`PROPERTYSTATE`, -`LEGAL1`, -`LEGAL2`, -`LEGAL3`, -`TAXCODE`, -`TAXDESC`, -`TAXSUBCODE`, -`TAXSUBCODE_DESC`, -`OWNERCODE`, -`OWNERDESC`, -`HOMESTEADFLAG`, -`FARMSTEADFLAG`, -`CLEANGREEN`, -`ABATEMENTFLAG`, -`RECORDDATE`, -`DEEDBOOK`, -`DEEDPAGE`, -`PREVSALEDATE2`, -`PREVSALEPRICE2`, -`CHANGENOTICEADDRESS1`, -`CHANGENOTICEADDRESS2`, -`CHANGENOTICEADDRESS3`, -`CHANGENOTICEADDRESS4`, -`STYLE`, -`ALT_ID`, -`PROPERTYUNIT`, -`COUNTYEXEMPTBLDG`,-`TAXYEAR`, -`ASOFDATE` )
+```
+
+```{r}
+another_clean_CharactData <- another_clean_CharactData %>%
+  filter(`CLASS` %in% c("R"))
+```
+
+
+```{r}
+another_clean_CharactData <- another_clean_CharactData %>%
+                      filter(`SALEDESC` == "VALID SALE")
+```
+
+```{r}
+another_clean_CharactData <- another_clean_CharactData %>%
+                      filter(LOTAREA != 0)
+```
+
+```{r}
+another_clean_CharactData <- another_clean_CharactData %>%
+  select(-`CLASS`, -`CLASSDESC`, -`USECODE`, -`SALECODE`, -`SALEDESC`, -`PREVSALEDATE`, -`PREVSALEPRICE`, -`COUNTYBUILDING`, -`COUNTYLAND`, -`LOCALBUILDING`, -`LOCALLAND`, -`FAIRMARKETBUILDING`, -`FAIRMARKETLAND`, -`EXTERIORFINISH`, -`ROOF`, -`ROOFDESC`, -`BASEMENT`, -`GRADE`, -`CONDITION`, -`CDU`, -`CDUDESC`, -`HEATINGCOOLING`, -`FIREPLACES`, -`BSMTGARAGE`, -`CARDNUMBER`, -`MUNICODE`, -`NEIGHCODE`)
+
+# 15 vars
+```
+
+```{r}
+# create FULLBATHS + HALFBATHS
+another_clean_CharactData$TOTALBATHS <- another_clean_CharactData$FULLBATHS + another_clean_CharactData$HALFBATHS
+```
+
+```{r}
+# Convert SALEDATE to a Date object
+another_clean_CharactData$SALEDATE <- mdy(another_clean_CharactData$SALEDATE)
+```
+
+```{r}
+# Extract the year from SALEDATE
+another_clean_CharactData$SALE_YEAR <- year(another_clean_CharactData$SALEDATE)
+```
+
+```{r}
+another_clean_CharactData <- another_clean_CharactData %>% 
+  filter(`PROPERTYZIP` %in% c("15222", "15217", "15139"))
+```
+
+```{r}
+# Identify rows with problematic values in the response variable (SALEPRICE)
+problematic_rows <- !complete.cases(another_clean_CharactData$SALEPRICE)
+
+# Drop rows with problematic values in the response variable
+clean_data <- another_clean_CharactData[!problematic_rows, ]
+
+# Check if there are any remaining problematic values in the response variable
+sum(is.na(clean_data$SALEPRICE))
+sum(is.nan(clean_data$SALEPRICE))
+sum(is.infinite(clean_data$SALEPRICE))
+```
+
+```{r}
+reg_1 <- lm(log(SALEPRICE) ~ log(BEDROOMS + FINISHEDLIVINGAREA + TOTALBATHS) + factor(NEIGHDESC) + factor(SALE_YEAR), data = another_clean_CharactData)
+summary(reg_1)
+```
 
