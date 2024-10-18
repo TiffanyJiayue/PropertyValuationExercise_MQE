@@ -231,7 +231,7 @@ another_clean_CharactData$SALE_YEAR <- year(another_clean_CharactData$SALEDATE)
 ```
 
 ```{r}
-# Need different zip code, since, the regression needs
+# Need different zip code, since,we need different neighborhood data to find the neighborhood fixed effect
 another_clean_CharactData <- another_clean_CharactData %>% 
   filter(`PROPERTYZIP` %in% c("15222", "15217", "15139"))
 ```
@@ -250,7 +250,46 @@ sum(is.infinite(clean_data$SALEPRICE))
 ```
 
 ```{r}
-reg_1 <- lm(log(SALEPRICE) ~ log(BEDROOMS + FINISHEDLIVINGAREA + TOTALBATHS) + factor(NEIGHDESC) + factor(SALE_YEAR), data = another_clean_CharactData)
+# This regression is different from the LinearModel(LinearMod) above.
+reg_1 <- lm(log(SALEPRICE) ~ log(BEDROOMS + FINISHEDLIVINGAREA + TOTALBATHS) 
++ factor(NEIGHDESC) + factor(SALE_YEAR), data = another_clean_CharactData)
 summary(reg_1)
 ```
 
+```{r}
+# Trying to find the coefficient estimate (year)
+# SALEDATE_YEAR2012 / SALEDATE_YEAR2023
+exp(2.994157) / exp(2.233256)
+# 2.140204
+```
+
+```{r}
+# Trying to find the coefficient estimate (Neighborhood)
+# OAK /  THE CARLYLE                    -0.267275
+exp(-0.470427) / exp(-0.267275)
+# 0.7476428
+# 0.8161542
+```
+
+```{r}
+# Adjustment Factor (Year and Neighborhood)
+# (SALEDATE_YEAR2015 / SALEDATE_YEAR2023) * ( 936 neighborhood : 11103 /  936 neighborhood : 11403)
+adjustment_factor = 2.140204 * 0.8161542
+# 1.803718
+```
+
+```{r}
+matchset <- subset(clean_CharactData, `LOTAREA` >= 3000 & `LOTAREA` <= 5000)
+matchset <- subset(matchset, `FINISHEDLIVINGAREA` > 2700)
+matchset <- subset(matchset, `AGE_SALE` > 2)
+matchset <- subset(matchset, TOTALBATHS == 3)
+matchset <- subset(matchset, USEDESC == 'THREE FAMILY')
+```
+
+```{r}
+# Apply Adjustment Factor to Sale Prices
+App2_adjusted <- filtered_data_App2
+App2_adjusted$SALEPRICE_ADJUSTED <- filtered_data_App2$SALEPRICE * adjustment_factor
+```
+
+Note: Since 
