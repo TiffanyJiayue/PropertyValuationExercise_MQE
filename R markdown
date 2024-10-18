@@ -52,8 +52,6 @@ clean_CharactData <- clean_CharactData %>%
 # Residence
 clean_CharactData <- clean_CharactData %>%
   filter(`CLASS` %in% c("R"))
-```
-```{r}
 # Zipcode 15206
 clean_CharactData <- clean_CharactData %>% 
   filter(`PROPERTYZIP` %in% c("15206"))
@@ -86,23 +84,24 @@ clean_CharactData$TOTALBATHS <- clean_CharactData$FULLBATHS + clean_CharactData$
 clean_CharactData <- clean_CharactData %>%
   select(-`FULLBATHS`, -`HALFBATHS`)
 ```
-# Filter the dataset
 ```{r}
+# Filter the dataset
 clean_CharactData <- clean_CharactData %>%
   select(-`COUNTYTOTAL`, -`LOCALTOTAL`, -`MUNIDESC`, -`TOTALROOMS`, -`FAIRMARKETTOTAL` )
 ```
 ```{r}
+# Filter the dataset
 clean_CharactData <- clean_CharactData[clean_CharactData$SALEPRICE> 100000,]
 ```
 
- # This is preparing to adjust the year factor.
 ```{r}
+ # This is preparing to adjust the year factor.
 clean_CharactData <- clean_CharactData %>%
   mutate(SALEDATE_YEAR = factor(format(SALEDATE, "%Y")))
 ```
 
 
-# (Approach 1)
+# (Approach 1; using clean_CharactData)
 # Step 1: Linear Model
 ```{r}
 LinearMod <- lm(log(SALEPRICE) ~ CONDITIONDESC + BEDROOMS 
@@ -142,13 +141,10 @@ house936 <- house936 %>%
 library(lubridate)
 # "SALEDATE" represents the sale date in the format "MM-DD-YYYY"
 # "YEARBLT" represents the year the property was built as a four-digit year (e.g., 1900)
-
 # Convert SALEDATE to a Date object
 house936$SALEDATE <- mdy(house936$SALEDATE)
-
 # Extract the year from SALEDATE
 house936$SALE_YEAR <- year(house936$SALEDATE)
-
 # Calculate AGE_SALE
 house936$AGE_SALE <- house936$SALE_YEAR - house936$YEARBLT
 ```
@@ -159,18 +155,17 @@ house936 <- house936 %>%
 ```
 
 ```{r}
-# Updating the SALEDATE_YEAR variable to 2023 for house936 (for prediction, specifically in the year 2023)
+# Updating the SALEDATE_YEAR variable to 2023 for house936 
+# (for prediction, specifically in the year 2023)
 house936$SALEDATE_YEAR <- as.factor(2023)
-
 # Using LinearModel
 prediction_LinearMod <- predict(LinearMod, newdata = house936, interval = "confidence")
-
 # since it is log(SALEPRICE), therefore, taking the exponential of the predicted log-transformed sale price 
 exp(prediction_LinearMod)
 ```
 
 
-# Approach 2 (Preparing another dataset, named"another_clean_CharactData,")
+# (Approach 2) (Preparing another dataset, named"another_clean_CharactData,")
 ```{r}
 # the properties below have the some similar characteristic as 936 Mellon St.
 #0025N00080022000	
@@ -213,9 +208,11 @@ another_clean_CharactData <- another_clean_CharactData %>%
 
 ```{r}
 another_clean_CharactData <- another_clean_CharactData %>%
-  select(-`CLASS`, -`CLASSDESC`, -`USECODE`, -`SALECODE`, -`SALEDESC`, -`PREVSALEDATE`, -`PREVSALEPRICE`, -`COUNTYBUILDING`, -`COUNTYLAND`, -`LOCALBUILDING`, -`LOCALLAND`, -`FAIRMARKETBUILDING`, -`FAIRMARKETLAND`, -`EXTERIORFINISH`, -`ROOF`, -`ROOFDESC`, -`BASEMENT`, -`GRADE`, -`CONDITION`, -`CDU`, -`CDUDESC`, -`HEATINGCOOLING`, -`FIREPLACES`, -`BSMTGARAGE`, -`CARDNUMBER`, -`MUNICODE`, -`NEIGHCODE`)
-
-# 15 vars
+  select(-`CLASS`, -`CLASSDESC`, -`USECODE`, -`SALECODE`, -`SALEDESC`, 
+-`PREVSALEDATE`, -`PREVSALEPRICE`, -`COUNTYBUILDING`, -`COUNTYLAND`, -`LOCALBUILDING`, 
+-`LOCALLAND`, -`FAIRMARKETBUILDING`, -`FAIRMARKETLAND`, -`EXTERIORFINISH`, -`ROOF`, 
+-`ROOFDESC`, -`BASEMENT`, -`GRADE`, -`CONDITION`, -`CDU`, -`CDUDESC`, -`HEATINGCOOLING`, 
+-`FIREPLACES`, -`BSMTGARAGE`, -`CARDNUMBER`, -`MUNICODE`, -`NEIGHCODE`)
 ```
 
 ```{r}
@@ -234,7 +231,7 @@ another_clean_CharactData$SALE_YEAR <- year(another_clean_CharactData$SALEDATE)
 ```
 
 ```{r}
-# Need different zip code, since, the regression needd
+# Need different zip code, since, the regression needs
 another_clean_CharactData <- another_clean_CharactData %>% 
   filter(`PROPERTYZIP` %in% c("15222", "15217", "15139"))
 ```
