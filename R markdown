@@ -292,4 +292,13 @@ App2_adjusted <- filtered_data_App2
 App2_adjusted$SALEPRICE_ADJUSTED <- filtered_data_App2$SALEPRICE * adjustment_factor
 ```
 
-Note: Since 
+Note (WHAT ARE THE DIFFICULTIES?): 
+1. Since Scheibler House is designed by the famous architect, how to estimate the extra value?
+2. The comparables are less.
+3. How does the price level changed over the years?
+4. How does the market trend affect the housing price?
+
+Note (HOW THE DIFFICULTIES IMPACT THE APPROACH?)
+1. Using log(saleprice), which improves the fit of the model, may have a better prediction.
+2. Updating the sale date year to 2023 for OLS.
+3. Finding the fixed effect of year and neighbor.
