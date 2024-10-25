@@ -1,0 +1,305 @@
+---
+title: "Valuating_ScheiblerHouse"
+output: html_document
+date: "2024-03-28"
+---
+
+# The Scheibler House was designed by the famous architect 
+#, and it will be put up for sale after it has been renovated. 
+# This is the code predicting its price.
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+```
+
+```{r}
+SaleData<- read.csv("saledata.csv")
+CharactData<- read.csv("charactdata.csv")
+```
+
+# (MAY FILTER DATA WHILE COLLECTING FROM WEBSITE or CLEAN ON EXCEL or by R)
+
+```{r}
+clean_CharactData <- CharactData %>%
+  select(-`X_id`, -`PROPERTYHOUSENUM`, -`PROPERTYFRACTION`, -`PROPERTYADDRESS`, 
+         -`PROPERTYCITY`, -`PROPERTYSTATE`, -`LEGAL1`, -`LEGAL2`, -`LEGAL3`, -`TAXCODE`, -`TAXDESC`, 
+         -`TAXSUBCODE`, -`TAXSUBCODE_DESC`, -`OWNERCODE`, -`OWNERDESC`, -`HOMESTEADFLAG`, -`FARMSTEADFLAG`, 
+         -`CLEANGREEN`, -`ABATEMENTFLAG`, -`RECORDDATE`, -`DEEDBOOK`, -`DEEDPAGE`, -`PREVSALEDATE2`, 
+         -`PREVSALEPRICE2`, -`CHANGENOTICEADDRESS1`, -`CHANGENOTICEADDRESS2`, -`CHANGENOTICEADDRESS3`, 
+         -`CHANGENOTICEADDRESS4`, -`STYLE`, -`ALT_ID`, -`PROPERTYUNIT`, -`COUNTYEXEMPTBLDG`,-`TAXYEAR`, -`ASOFDATE` )
+```
+
+```{r}
+clean_CharactData <- clean_CharactData %>%
+  select( -`PROPERTYZIP`, -`CLASS`, -`CLASSDESC`, -`USECODE`, -`SALECODE`, 
+         -`SALEDESC`, -`PREVSALEDATE`, -`PREVSALEPRICE`, -`COUNTYBUILDING`, 
+         -`COUNTYLAND`, -`LOCALBUILDING`, -`LOCALLAND`, -`FAIRMARKETBUILDING`, -`FAIRMARKETLAND`, 
+         -`EXTERIORFINISH`, -`ROOF`, -`ROOFDESC`, -`BASEMENT`, -`GRADE`, -`CONDITION`, -`CDU`, 
+         -`CDUDESC`, -`HEATINGCOOLING`, -`FIREPLACES`, -`BSMTGARAGE`, -`CARDNUMBER`, -`MUNICODE`, -`NEIGHCODE`)
+```
+
+# (After Cleaning, preparing Data) 
+# Step 1. Filtering data (Residence, Zipcode 15206, Valid Sale, LotArea!=0)
+# Step 2. Creating variables (Sale_year based on Sale_date, and Age_sale based on yearbuilt and Sale_date)
+# Step 3. Creating variables (Totalbaths = Fullbaths + Halfbaths)
+
+# Step 1
+```{r}
+# Residence
+clean_CharactData <- clean_CharactData %>%
+  filter(`CLASS` %in% c("R"))
+# Zipcode 15206
+clean_CharactData <- clean_CharactData %>% 
+  filter(`PROPERTYZIP` %in% c("15206"))
+# Valid Sale
+clean_CharactData <- clean_CharactData %>%
+                      filter(`SALEDESC` == "VALID SALE")
+# Lot Area cannot be zero
+clean_CharactData <- clean_CharactData %>%
+                      filter(LOTAREA != 0)
+```
+
+# Step 2
+```{r}
+library(lubridate)
+# Convert SALEDATE to a Date object
+clean_CharactData$SALEDATE <- mdy(clean_CharactData$SALEDATE)
+# Extract the year from SALEDATE
+clean_CharactData$SALE_YEAR <- year(clean_CharactData$SALEDATE)
+# Calculate AGE_SALE
+clean_CharactData$AGE_SALE <- clean_CharactData$SALE_YEAR - clean_CharactData$YEARBLT
+```
+
+# Step 3
+```{r}
+# create a new variable "TOTALBATHS": FULLBATHS + HALFBATHS
+clean_CharactData$TOTALBATHS <- clean_CharactData$FULLBATHS + clean_CharactData$HALFBATHS
+```
+```{r}
+# remove the old variables
+clean_CharactData <- clean_CharactData %>%
+  select(-`FULLBATHS`, -`HALFBATHS`)
+```
+```{r}
+# Filter the dataset
+clean_CharactData <- clean_CharactData %>%
+  select(-`COUNTYTOTAL`, -`LOCALTOTAL`, -`MUNIDESC`, -`TOTALROOMS`, -`FAIRMARKETTOTAL` )
+```
+```{r}
+# Filter the dataset
+clean_CharactData <- clean_CharactData[clean_CharactData$SALEPRICE> 100000,]
+```
+
+```{r}
+ # This is preparing to adjust the year factor.
+clean_CharactData <- clean_CharactData %>%
+  mutate(SALEDATE_YEAR = factor(format(SALEDATE, "%Y")))
+```
+
+
+# (Approach 1; using clean_CharactData)
+# Step 1: Linear Model
+```{r}
+LinearMod <- lm(log(SALEPRICE) ~ CONDITIONDESC + BEDROOMS 
+                + FINISHEDLIVINGAREA + TOTALBATHS + AGE_SALE + I(AGE_SALE^2) 
+                + HEATINGCOOLINGDESC + NEIGHDESC + STYLEDESC + LOTAREA 
+                + SALEDATE_YEAR + STORIES , data = clean_CharactData)
+summary(LinearMod)
+```
+
+# Step 2: 'house936' is the dataset about Scheibler House (936 Mellon St)
+```{r}
+house936 <- subset(CharactData, PARID == "0082R00061000000")
+```
+
+```{r}
+house936 <- house936 %>%
+  select(`SALEPRICE`, `NEIGHDESC`, `LOTAREA`, 
+`STYLEDESC`, `STORIES`, `YEARBLT`, `CONDITIONDESC`, 
+`BEDROOMS`, `FINISHEDLIVINGAREA`,`FAIRMARKETTOTAL`, `HEATINGCOOLINGDESC`,
+`FULLBATHS`, `HALFBATHS`, `EXTFINISH_DESC`, `BASEMENTDESC`, `SALEDATE`, `GRADEDESC`, `SCHOOLCODE`)
+```
+
+```{r}
+house936$HALFBATHS <- ifelse(is.na(house936$HALFBATHS), 0, house936$HALFBATHS)
+```
+
+```{r}
+house936$TOTALBATHS <- house936$FULLBATHS + house936$HALFBATHS
+```
+
+```{r}
+house936 <- house936 %>%
+  select(-`FULLBATHS`, -`HALFBATHS`)
+```
+
+```{r}
+library(lubridate)
+# "SALEDATE" represents the sale date in the format "MM-DD-YYYY"
+# "YEARBLT" represents the year the property was built as a four-digit year (e.g., 1900)
+# Convert SALEDATE to a Date object
+house936$SALEDATE <- mdy(house936$SALEDATE)
+# Extract the year from SALEDATE
+house936$SALE_YEAR <- year(house936$SALEDATE)
+# Calculate AGE_SALE
+house936$AGE_SALE <- house936$SALE_YEAR - house936$YEARBLT
+```
+
+```{r}
+house936 <- house936 %>%
+  mutate(SALEDATE_YEAR = factor(format(SALEDATE, "%Y")))
+```
+
+```{r}
+# Updating the SALEDATE_YEAR variable to 2023 for house936 
+# (for prediction, specifically in the year 2023)
+house936$SALEDATE_YEAR <- as.factor(2023)
+# Using LinearModel
+prediction_LinearMod <- predict(LinearMod, newdata = house936, interval = "confidence")
+# since it is log(SALEPRICE), therefore, taking the exponential of the predicted log-transformed sale price 
+exp(prediction_LinearMod)
+```
+
+
+# (Approach 2) (Preparing another dataset, named"another_clean_CharactData,")
+```{r}
+# the properties below have the some similar characteristic as 936 Mellon St.
+#0025N00080022000	
+#0082F00195000000
+#0086M00051000000	
+#0443K00260000000
+#0025K00162031700
+
+# Define the parcel numbers of interest
+parcel_numbers <- c("0025N00080022000", "0086M00051000000", "0443K00260000000", "0025K00162031700","0084L00098000000", "0085H00008000000")
+
+# Filter clean_CharactData to include only the specified parcel numbers
+filtered_data_App2 <- subset(CharactData, PARID %in% parcel_numbers)
+```
+
+```{r}
+another_clean_CharactData <- CharactData %>%
+  select(-`X_id`, -`PROPERTYHOUSENUM`, -`PROPERTYFRACTION`, -`PROPERTYADDRESS`,  
+-`PROPERTYCITY`, -`PROPERTYSTATE`, -`LEGAL1`, -`LEGAL2`, -`LEGAL3`, -`TAXCODE`, -`TAXDESC`, 
+-`TAXSUBCODE`, -`TAXSUBCODE_DESC`, -`OWNERCODE`, -`OWNERDESC`, -`HOMESTEADFLAG`, -`FARMSTEADFLAG`, 
+-`CLEANGREEN`, -`ABATEMENTFLAG`, -`RECORDDATE`, -`DEEDBOOK`, -`DEEDPAGE`, -`PREVSALEDATE2`, 
+-`PREVSALEPRICE2`, -`CHANGENOTICEADDRESS1`, -`CHANGENOTICEADDRESS2`, -`CHANGENOTICEADDRESS3`, 
+-`CHANGENOTICEADDRESS4`, -`STYLE`, -`ALT_ID`, -`PROPERTYUNIT`, -`COUNTYEXEMPTBLDG`,-`TAXYEAR`, -`ASOFDATE` )
+```
+
+```{r}
+another_clean_CharactData <- another_clean_CharactData %>%
+  filter(`CLASS` %in% c("R"))
+```
+
+```{r}
+another_clean_CharactData <- another_clean_CharactData %>%
+                      filter(`SALEDESC` == "VALID SALE")
+```
+
+```{r}
+another_clean_CharactData <- another_clean_CharactData %>%
+                      filter(LOTAREA != 0)
+```
+
+```{r}
+another_clean_CharactData <- another_clean_CharactData %>%
+  select(-`CLASS`, -`CLASSDESC`, -`USECODE`, -`SALECODE`, -`SALEDESC`, 
+-`PREVSALEDATE`, -`PREVSALEPRICE`, -`COUNTYBUILDING`, -`COUNTYLAND`, -`LOCALBUILDING`, 
+-`LOCALLAND`, -`FAIRMARKETBUILDING`, -`FAIRMARKETLAND`, -`EXTERIORFINISH`, -`ROOF`, 
+-`ROOFDESC`, -`BASEMENT`, -`GRADE`, -`CONDITION`, -`CDU`, -`CDUDESC`, -`HEATINGCOOLING`, 
+-`FIREPLACES`, -`BSMTGARAGE`, -`CARDNUMBER`, -`MUNICODE`, -`NEIGHCODE`)
+```
+
+```{r}
+# create FULLBATHS + HALFBATHS
+another_clean_CharactData$TOTALBATHS <- another_clean_CharactData$FULLBATHS + another_clean_CharactData$HALFBATHS
+```
+
+```{r}
+# Convert SALEDATE to a Date object
+another_clean_CharactData$SALEDATE <- mdy(another_clean_CharactData$SALEDATE)
+```
+
+```{r}
+# Extract the year from SALEDATE
+another_clean_CharactData$SALE_YEAR <- year(another_clean_CharactData$SALEDATE)
+```
+
+```{r}
+# Need different zip code, since,we need different neighborhood data to find the neighborhood fixed effect
+another_clean_CharactData <- another_clean_CharactData %>% 
+  filter(`PROPERTYZIP` %in% c("15222", "15217", "15139"))
+```
+
+```{r}
+# Identify rows with problematic values in the response variable (SALEPRICE)
+problematic_rows <- !complete.cases(another_clean_CharactData$SALEPRICE)
+
+# Drop rows with problematic values in the response variable
+clean_data <- another_clean_CharactData[!problematic_rows, ]
+
+# Check if there are any remaining problematic values in the response variable
+sum(is.na(clean_data$SALEPRICE))
+sum(is.nan(clean_data$SALEPRICE))
+sum(is.infinite(clean_data$SALEPRICE))
+```
+
+```{r}
+# This regression is different from the LinearModel(LinearMod) above.
+reg_1 <- lm(log(SALEPRICE) ~ log(BEDROOMS + FINISHEDLIVINGAREA + TOTALBATHS) 
++ factor(NEIGHDESC) + factor(SALE_YEAR), data = another_clean_CharactData)
+summary(reg_1)
+```
+
+```{r}
+# Trying to find the coefficient estimate (year)
+# SALEDATE_YEAR2012 / SALEDATE_YEAR2023
+exp(2.994157) / exp(2.233256)
+# 2.140204
+```
+
+```{r}
+# Trying to find the coefficient estimate (Neighborhood)
+# OAK /  THE CARLYLE                    -0.267275
+exp(-0.470427) / exp(-0.267275)
+# 0.7476428
+# 0.8161542
+```
+
+```{r}
+# Adjustment Factor (Year and Neighborhood)
+# (SALEDATE_YEAR2015 / SALEDATE_YEAR2023) * ( 936 neighborhood : 11103 /  936 neighborhood : 11403)
+adjustment_factor = 2.140204 * 0.8161542
+# 1.803718
+```
+
+```{r}
+matchset <- subset(clean_CharactData, `LOTAREA` >= 3000 & `LOTAREA` <= 5000)
+matchset <- subset(matchset, `FINISHEDLIVINGAREA` > 2700)
+matchset <- subset(matchset, `AGE_SALE` > 2)
+matchset <- subset(matchset, TOTALBATHS == 3)
+matchset <- subset(matchset, USEDESC == 'THREE FAMILY')
+```
+
+```{r}
+# Apply Adjustment Factor to Sale Prices
+App2_adjusted <- filtered_data_App2
+App2_adjusted$SALEPRICE_ADJUSTED <- filtered_data_App2$SALEPRICE * adjustment_factor
+```
+
+Note (WHAT ARE THE DIFFICULTIES?): 
+1. Since Scheibler House is designed by the famous architect, how to estimate the extra value?
+2. The comparables are less.
+3. How does the price level changed over the years?
+4. How does the market trend affect the housing price?
+
+Note (HOW THE DIFFICULTIES IMPACT THE APPROACH?)
+1. Using log(saleprice), which improves the fit of the model, may have a better prediction.
+2. Updating the sale date year to 2023 for OLS.
+3. Finding the fixed effect of year and neighbor.
