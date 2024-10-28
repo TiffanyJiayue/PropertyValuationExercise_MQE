@@ -4,8 +4,7 @@ output: html_document
 date: "2024-03-28"
 ---
 
-# The Scheibler House was designed by the famous architect 
-#, and it will be put up for sale after it has been renovated. 
+# The Scheibler House was designed by the famous architect and it will be put up for sale after it has been renovated. 
 # This is the code predicting its price.
 
 
