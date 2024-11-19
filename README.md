@@ -47,3 +47,14 @@ Approach 2: Comparables Analysis
 1. Historical design adds complexity in valuation.
 2. Neighborhood and year significantly influence housing prices.
 3. Log-transformed sale prices improve model accuracy.
+
+
+# How to Run the Code (Three ways)
+1. Clone the repository:
+git clone https://github.com/TiffanyJiayue/Valuating_ScheiblerHouse.git
+# OR
+2. Open the R Markdown file (Valuating_ScheiblerHouse.Rmd) in RStudio; run the chunks sequentially.
+
+# Contact
+For questions or suggestions, feel free to reach out:
+Email: jil579@pitt.edu
