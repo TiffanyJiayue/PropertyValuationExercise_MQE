@@ -1,16 +1,50 @@
 # Property-Valuation-Exercise-MQE-
+# Valuating Scheibler House 
 
-**Objective:** predict the price of the renovated Scheibler building at 936 Mellon Street in highland park.
+This repository contains the R code and dataset used to predict the price of the Scheibler House, a historic property designed by a renowned architect, to be sold after renovations. The project applies data cleaning, feature engineering, and regression analysis to estimate the house's value.
 
-**Backgrounds:** Frederick G Scheibler Jr. was a famous Pittsburgh Architect
-(https://en.wikipedia.org/wiki/Frederick_G._Scheibler_Jr.). 
+# Project Overview
+The goal of this project is to:
+1. Prepare and clean property and sales datasets.
+2. Develop predictive models to estimate housing prices.
+3. Apply adjustments to account for unique architectural value and market trends.
 
-A 3 unit apartment building (1 unit on each of 3 floors) that he built in Highland Park is currently being renovated.  The renovations will add an Elevator to the building and will expand the living space on each floor – adding an extra bedroom to each unit and expanding each unit by roughly 400 square feet. 
+# Key Challenges:
+1. Estimating the added value of historical architectural design.
+2. Limited comparable sales data.
+3. Accounting for price trends and market variations.
 
-My Project the following parts:
-1)	Use 2 distinctly different approaches (i.e. not just 2 different regression models) to estimate the market value of these properties.  
+# Dataset
+The project uses two primary datasets:
+1. Sale Data: Contains historical sale information for various properties. https://data.wprdc.org/dataset/real-estate-sales
+2. Characteristics Data: Includes property attributes like lot area, number of bedrooms, and year built.
+https://data.wprdc.org/dataset/property-assessments
 
-2)	Why is this a difficult question to answer? 
+# Data Preparation:
+1. Cleaned datasets by removing irrelevant columns and handling missing data.
+2. Created new features such as AGE_SALE, TOTALBATHS, and SALE_YEAR.
+3. Filtered data to include only valid sales and properties in relevant zip codes.
 
-3)	 How did these difficulties impact your chosen approach?
+# Two Approaches for Valuation
+Approach 1: Linear Regression Model
+- Developed a linear regression model using log-transformed sale prices to improve model fit.
+- Key predictors:
+    Property characteristics: CONDITIONDESC, BEDROOMS, FINISHEDLIVINGAREA, TOTALBATHS, etc.
+    Neighborhood fixed effects and time variables like SALE_YEAR.
+- Adjusted the year factor to 2023 for prediction consistency.
 
+Approach 2: Comparables Analysis
+- Identified properties with similar characteristics to the Scheibler House.
+- Applied adjustment factors for:
+    Time: Accounting for price changes over the years.
+    Neighborhood: Accounting for location-specific price variations.
+- Estimated the adjusted price of comparable properties using a manual adjustment factor.
+
+# Results
+Approach 1: Linear regression predicts the log-transformed sale price of the Scheibler House, leveraging key property attributes and fixed effects.
+Approach 2: Comparable property analysis refines the valuation by considering similar properties and applying necessary adjustments.
+
+# Key Findings:
+1. Historical design adds complexity in valuation.
+2. Neighborhood and year significantly influence housing prices.
+3. Log-transformed sale prices improve model accuracy.
