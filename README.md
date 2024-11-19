@@ -1,4 +1,3 @@
-# Property-Valuation-Exercise-MQE-
 # Valuating Scheibler House 
 
 This repository contains the R code and dataset used to predict the price of the Scheibler House, a historic property designed by a renowned architect, to be sold after renovations. The project applies data cleaning, feature engineering, and regression analysis to estimate the house's value.
