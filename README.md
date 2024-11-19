@@ -29,20 +29,20 @@ https://data.wprdc.org/dataset/property-assessments
 Approach 1: Linear Regression Model
 - Developed a linear regression model using log-transformed sale prices to improve model fit.
 - Key predictors:
-    Property characteristics: CONDITIONDESC, BEDROOMS, FINISHEDLIVINGAREA, TOTALBATHS, etc.
-    Neighborhood fixed effects and time variables like SALE_YEAR.
+1. Property characteristics: CONDITIONDESC, BEDROOMS, FINISHEDLIVINGAREA, TOTALBATHS, etc.
+2. Neighborhood fixed effects and time variables like SALE_YEAR.
 - Adjusted the year factor to 2023 for prediction consistency.
 
 Approach 2: Comparables Analysis
 - Identified properties with similar characteristics to the Scheibler House.
 - Applied adjustment factors for:
-    Time: Accounting for price changes over the years.
-    Neighborhood: Accounting for location-specific price variations.
+1. Time: Accounting for price changes over the years.
+2. Neighborhood: Accounting for location-specific price variations.
 - Estimated the adjusted price of comparable properties using a manual adjustment factor.
 
 # Results
-Approach 1: Linear regression predicts the log-transformed sale price of the Scheibler House, leveraging key property attributes and fixed effects.
-Approach 2: Comparable property analysis refines the valuation by considering similar properties and applying necessary adjustments.
+- Approach 1: Linear regression predicts the log-transformed sale price of the Scheibler House, leveraging key property attributes and fixed effects.
+- Approach 2: Comparable property analysis refines the valuation by considering similar properties and applying necessary adjustments.
 
 # Key Findings:
 1. Historical design adds complexity in valuation.
