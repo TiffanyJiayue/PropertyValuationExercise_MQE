@@ -49,7 +49,7 @@ Approach 2: Comparables Analysis
 3. Log-transformed sale prices improve model accuracy.
 
 
-# How to Run the Code (Three ways)
+# How to Run the Code (Two ways)
 1. Clone the repository:
 git clone https://github.com/TiffanyJiayue/Valuating_ScheiblerHouse.git
 # OR
