@@ -56,5 +56,4 @@ git clone https://github.com/TiffanyJiayue/Valuating_ScheiblerHouse.git
 2. Open the R Markdown file (Valuating_ScheiblerHouse.Rmd) in RStudio; run the chunks sequentially.
 
 # Contact
-For questions or suggestions, feel free to reach out:
-Email: jil579@pitt.edu
+For questions or suggestions, feel free to reach out via GitHub
